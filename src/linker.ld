@@ -12,23 +12,26 @@ SECTIONS {
     *(.text.entry)
     *(.text, .text.*)
   }
+  . = ALIGN(4K);
   etext = .;
 
   srodata = .;
   .rodata : {
     *(.rodata, .rodata.*)
   }
+  . = ALIGN(4K);
   erodata = .;
 
   sdata = .;
   .data : {
     *(.data, .data.*)
   }
+  . = ALIGN(4K);
   edata = .;
 
-  sbss = .;
   .bss : {
     *(.bss.stack)
+    sbss = .;
     *(.bss, .bss.*)
   }
   ebss = .;
