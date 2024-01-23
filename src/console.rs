@@ -17,6 +17,11 @@ pub fn print(args: Arguments) {
     Stdout.write_fmt(args).unwrap();
 }
 
+pub fn println(args: Arguments) {
+    Stdout.write_fmt(args).unwrap();
+    Stdout.write_char('\n').unwrap();
+}
+
 #[macro_export]
 macro_rules! print {
     ($fmt: literal $(, $($args: tt)+)?) => {
@@ -27,6 +32,6 @@ macro_rules! print {
 #[macro_export]
 macro_rules! println {
     ($fmt: literal $(, $($args: tt)+)?) => {
-        crate::console::print(format_args!(concat!($fmt, "\n") $(, $($args)+)?));
+        crate::console::println(format_args!($fmt $(, $($args)+)?));
     };
 }

@@ -1,6 +1,7 @@
 CARGO = cargo
 
 MODE ?= debug
+export LOG ?= info
 
 BIN = $(TARGET_DIR)/$(TARGET)/$(MODE)/$(PROJECT)
 
