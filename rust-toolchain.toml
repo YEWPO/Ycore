@@ -1,0 +1,3 @@
+[toolchain]
+prefix = "minimal"
+channel = "nightly"
