@@ -4,12 +4,14 @@
 
 use core::arch::global_asm;
 
-use log::info;
+use log::{info, debug};
 
+mod config;
 mod lang_items;
 mod console;
 mod sbi;
 mod logger;
+mod mm;
 
 global_asm!(include_str!("entry.S"));
 
@@ -23,6 +25,7 @@ fn clear_bss() {
     unsafe {
         core::slice::from_raw_parts_mut(sbss as usize as *mut u8, ebss as usize - sbss as usize).fill(0);
     }
+    debug!("Cleared bss section.");
 }
 
 #[no_mangle]
