@@ -34,6 +34,7 @@ fn kernel_main() {
     logger::init();
 
     clear_bss();
+    mm::init();
 
     panic!();
 }
