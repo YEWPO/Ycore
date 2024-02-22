@@ -14,6 +14,7 @@ mod console;
 mod sbi;
 mod logger;
 mod mm;
+mod sync;
 
 global_asm!(include_str!("entry.S"));
 
