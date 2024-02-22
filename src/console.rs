@@ -25,13 +25,13 @@ pub fn println(args: Arguments) {
 #[macro_export]
 macro_rules! print {
     ($fmt: literal $(, $($args: tt)+)?) => {
-        crate::console::print(format_args!($fmt $(, $($args)+)?))
+        $crate::console::print(format_args!($fmt $(, $($args)+)?))
     };
 }
 
 #[macro_export]
 macro_rules! println {
     ($fmt: literal $(, $($args: tt)+)?) => {
-        crate::console::println(format_args!($fmt $(, $($args)+)?))
+        $crate::console::println(format_args!($fmt $(, $($args)+)?))
     };
 }

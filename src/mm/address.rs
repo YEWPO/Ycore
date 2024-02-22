@@ -70,7 +70,7 @@ impl VirtAddr {
     }
 
     pub fn ceil(&self) -> VirtPageNum {
-        VirtPageNum((self.0.checked_sub(1).unwrap_or(0) + ((1 << PAGE_SIZE_BITS) - 1)) >> PAGE_SIZE_BITS)
+        VirtPageNum((self.0.saturating_sub(1) + ((1 << PAGE_SIZE_BITS) - 1)) >> PAGE_SIZE_BITS)
     }
 
     pub fn page_offset(&self) -> usize {
@@ -100,7 +100,7 @@ impl PhysAddr {
     }
 
     pub fn ceil(&self) -> PhysPageNum {
-        PhysPageNum((self.0.checked_sub(1).unwrap_or(0) + ((1 << PAGE_SIZE_BITS) - 1)) >> PAGE_SIZE_BITS)
+        PhysPageNum((self.0.saturating_sub(1) + ((1 << PAGE_SIZE_BITS) - 1)) >> PAGE_SIZE_BITS)
     }
 
     pub fn page_offset(&self) -> usize {
