@@ -1,5 +1,7 @@
 use crate::config::{VA_WIDTH, PA_WIDTH, VPN_WIDTH, PPN_WIDTH, PAGE_SIZE_BITS};
 
+use super::page_table::PageTableEntry;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct VirtAddr(pub usize);
 
@@ -64,6 +66,30 @@ impl From<PhysPageNum> for usize {
     }
 }
 
+impl From<VirtPageNum> for VirtAddr {
+    fn from(value: VirtPageNum) -> Self {
+        VirtAddr::from(value.0 << PAGE_SIZE_BITS)
+    }
+}
+
+impl From<VirtAddr> for VirtPageNum {
+    fn from(value: VirtAddr) -> Self {
+        value.floor()
+    }
+}
+
+impl From<PhysPageNum> for PhysAddr {
+    fn from(value: PhysPageNum) -> Self {
+        PhysAddr::from(value.0 << PAGE_SIZE_BITS)
+    }
+}
+
+impl From<PhysAddr> for PhysPageNum {
+    fn from(value: PhysAddr) -> Self {
+        value.floor()
+    }
+}
+
 impl VirtAddr {
     pub fn floor(&self) -> VirtPageNum {
         VirtPageNum(self.0 >> PAGE_SIZE_BITS)
@@ -79,18 +105,6 @@ impl VirtAddr {
 
     pub fn aligned(&self) -> bool {
         self.page_offset() == 0
-    }
-}
-
-impl From<VirtPageNum> for VirtAddr {
-    fn from(value: VirtPageNum) -> Self {
-        VirtAddr::from(value.0 << PAGE_SIZE_BITS)
-    }
-}
-
-impl From<VirtAddr> for VirtPageNum {
-    fn from(value: VirtAddr) -> Self {
-        value.floor()
     }
 }
 
@@ -110,17 +124,13 @@ impl PhysAddr {
     pub fn aligned(&self) -> bool {
         self.page_offset() == 0
     }
-}
 
-impl From<PhysPageNum> for PhysAddr {
-    fn from(value: PhysPageNum) -> Self {
-        PhysAddr::from(value.0 << PAGE_SIZE_BITS)
+    pub fn get_ref<T>(&self) -> &'static T {
+        unsafe { (self.0 as *const T).as_ref().unwrap() }
     }
-}
 
-impl From<PhysAddr> for PhysPageNum {
-    fn from(value: PhysAddr) -> Self {
-        value.floor()
+    pub fn get_mut<T>(&self) -> &'static mut T {
+        unsafe { (self.0 as *mut T).as_mut().unwrap() }
     }
 }
 
@@ -133,5 +143,22 @@ impl VirtPageNum {
             vpn >>= 9;
         }
         idx
+    }
+}
+
+impl PhysPageNum {
+    pub fn get_pte_array(&self) -> &'static mut [PageTableEntry] {
+        let pa: PhysAddr = (*self).into();
+        unsafe { core::slice::from_raw_parts_mut(pa.0 as *mut PageTableEntry, 512) }
+    }
+
+    pub fn get_byte_array(&self) -> &'static mut [u8] {
+        let pa: PhysAddr = (*self).into();
+        unsafe { core::slice::from_raw_parts_mut(pa.0 as *mut u8, 4096) }
+    }
+
+    pub fn get_mut<T>(&self) -> &'static mut T {
+        let pa: PhysAddr = (*self).into();
+        pa.get_mut()
     }
 }

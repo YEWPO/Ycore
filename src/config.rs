@@ -8,3 +8,5 @@ pub const VA_WIDTH: usize = VA_WIDTH_SV39;
 pub const PA_WIDTH: usize = PA_WIDTH_SV39;
 pub const VPN_WIDTH: usize = VA_WIDTH - PAGE_SIZE_BITS;
 pub const PPN_WIDTH: usize = PA_WIDTH - PAGE_SIZE_BITS;
+
+pub const MEMORY_END: usize = 0x88000000;
