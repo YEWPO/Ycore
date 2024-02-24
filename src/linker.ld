@@ -12,23 +12,23 @@ SECTIONS {
   stext = .;
   .text : {
     *(.text.entry)
-    *(.text, .text.*)
+    *(.text .text.*)
   }
   . = ALIGN(4K);
   etext = .;
 
   srodata = .;
   .rodata : {
-    *(.rodata, .rodata.*)
-    *(.srodata, .srodata.*)
+    *(.rodata .rodata.*)
+    *(.srodata .srodata.*)
   }
   . = ALIGN(4K);
   erodata = .;
 
   sdata = .;
   .data : {
-    *(.data, .data.*)
-    *(.sdata, .sdata.*)
+    *(.data .data.*)
+    *(.sdata .sdata.*)
   }
   . = ALIGN(4K);
   edata = .;
@@ -37,8 +37,8 @@ SECTIONS {
   .bss : {
     *(.bss.stack)
     sbss = .;
-    *(.bss, .bss.*)
-    *(.sbss, .sbss.*)
+    *(.bss .bss.*)
+    *(.sbss .sbss.*)
   }
   ebss = .;
 
