@@ -78,7 +78,13 @@ impl FrameAllocator for StackFrameAllocator {
     }
 
     fn alloc_more(&mut self, pages: usize) -> Option<Vec<PhysPageNum>> {
-        if self.current + pages >= self.end {
+        if self.recycled.len() >= pages {
+            let v = self.recycled
+                .drain(0..pages)
+                .map(|x| x.into())
+                .collect();
+            Some(v)
+        } else if self.current + pages >= self.end {
             None
         } else {
             self.current += pages;
