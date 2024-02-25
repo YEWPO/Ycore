@@ -2,6 +2,7 @@ mod address;
 mod page_table;
 mod heap_allocator;
 mod frame_allocator;
+mod memory_set;
 
 pub use address::{VPNRange, PPNRange};
 
