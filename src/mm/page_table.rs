@@ -5,7 +5,7 @@ use log::{debug, trace, warn};
 
 use crate::config::PPN_WIDTH;
 
-use super::{address::{PhysPageNum, VirtPageNum}, frame_allocator::{frame_alloc, FrameTracker}};
+use super::{address::{PhysAddr, PhysPageNum, VirtAddr, VirtPageNum}, frame_allocator::{frame_alloc, FrameTracker}};
 
 const FLAGS_BITS: usize = 10;
 
@@ -84,6 +84,10 @@ impl PageTable {
         }
     }
 
+    pub fn satp(&self) -> usize {
+        8usize << 60 | self.root_ppn.0
+    }
+
     fn find_pte_create(&mut self, vpn: VirtPageNum) -> Option<&mut PageTableEntry> {
         let idxs = vpn.indexes();
         let mut ppn = self.root_ppn;
@@ -154,5 +158,18 @@ impl PageTable {
 
         trace!("vpn {:?} is unmapped", vpn);
         *pte = PageTableEntry::empty();
+    }
+
+    pub fn translate(&self, vpn: VirtPageNum) -> Option<PageTableEntry> {
+        self.find_pte(vpn).map(|pte| *pte)
+    }
+
+    pub fn translate_va(&self, va: VirtAddr) -> Option<PhysAddr> {
+        self.find_pte(va.clone().floor()).map(|pte| {
+            let aligned_pa: PhysAddr  = pte.ppn().into();
+            let offset = va.page_offset();
+            let aligned_pa_usize: usize = aligned_pa.into();
+            (aligned_pa_usize + offset).into()
+        })
     }
 }
