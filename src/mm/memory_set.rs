@@ -1,7 +1,7 @@
 use alloc::collections::BTreeMap;
 use bitflags::bitflags;
 
-use super::{address::{VirtAddr, VirtPageNum}, frame_allocator::FrameTracker, VPNRange};
+use super::{address::{PhysPageNum, VirtAddr, VirtPageNum}, frame_allocator::{frame_alloc, FrameTracker}, page_table::{PTEFlags, PageTable}, VPNRange};
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum MapType {
@@ -46,6 +46,45 @@ impl MapArea {
             data_frame: BTreeMap::new(),
             map_type: another.map_type,
             map_perm: another.map_perm,
+        }
+    }
+
+    pub fn map_one(&mut self, page_table: &mut PageTable, vpn: VirtPageNum) {
+        let ppn: PhysPageNum = match self.map_type {
+            MapType::Indentical => {
+                PhysPageNum(vpn.0)
+            }
+            MapType::Framed => {
+                let frame = frame_alloc().unwrap();
+                let frame_ppn = frame.ppn;
+                self.data_frame.insert(vpn, frame);
+                frame_ppn
+            }
+            MapType::Linear(pn_offset) => {
+                assert!(vpn.0 < (1usize << 27));
+                PhysPageNum((vpn.0 as isize + pn_offset) as usize)
+            }
+        };
+        let pte_flags = PTEFlags::from_bits(self.map_perm.bits().into()).unwrap();
+        page_table.map(vpn, ppn, pte_flags);
+    }
+
+    pub fn unmap_one(&mut self, page_table: &mut PageTable, vpn: VirtPageNum) {
+        if self.map_type == MapType::Framed {
+            self.data_frame.remove(&vpn);
+        }
+        page_table.unmap(vpn);
+    }
+
+    pub fn map(&mut self, page_table: &mut PageTable) {
+        for vpn in self.vpn_range {
+            self.map_one(page_table, vpn);
+        }
+    }
+
+    pub fn unmap(&mut self, page_table: &mut PageTable) {
+        for vpn in self.vpn_range {
+            self.unmap_one(page_table, vpn);
         }
     }
 }
