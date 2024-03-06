@@ -1,12 +1,14 @@
 use core::arch::asm;
 
-use alloc::{collections::BTreeMap, vec::Vec};
+use alloc::{collections::BTreeMap, sync::Arc, vec::Vec};
 use bitflags::bitflags;
+use lazy_static::lazy_static;
+use log::{info, warn};
 use riscv::register::satp;
 
-use crate::{config::PAGE_SIZE, mm::address::StepByOne};
+use crate::{config::{MEMORY_END, PAGE_SIZE, TRAMPOLINE}, mm::address::StepByOne, sync::UPIntrFreeCell};
 
-use super::{address::{PhysPageNum, VirtAddr, VirtPageNum}, frame_allocator::{frame_alloc, FrameTracker}, page_table::{PTEFlags, PageTable, PageTableEntry}, VPNRange};
+use super::{address::{PhysAddr, PhysPageNum, VirtAddr, VirtPageNum}, frame_allocator::{frame_alloc, FrameTracker}, page_table::{PTEFlags, PageTable, PageTableEntry}, VPNRange};
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum MapType {
@@ -117,6 +119,28 @@ impl MapArea {
     }
 }
 
+extern "C" {
+    fn stext();
+    fn etext();
+    fn srodata();
+    fn erodata();
+    fn sdata();
+    fn edata();
+    fn sbss_with_stack();
+    fn ebss();
+    fn ekernel();
+    fn strampoline();
+}
+
+lazy_static! {
+    pub static ref KERNEL_SPACE: Arc<UPIntrFreeCell<MemorySet>> =
+        Arc::new(unsafe { UPIntrFreeCell::new(MemorySet::new_kernel()) });
+}
+
+pub fn kernel_satp() -> usize {
+    KERNEL_SPACE.exclusive_access().satp()
+}
+
 pub struct MemorySet {
     page_table: PageTable,
     areas: Vec<MapArea>,
@@ -155,6 +179,7 @@ impl MemorySet {
 
     pub fn activate(&self) {
         let satp = self.page_table.satp();
+        warn!("set satp 0x{:#x}", satp);
         unsafe {
             satp::write(satp);
             asm!("sfence.vma");
@@ -167,5 +192,77 @@ impl MemorySet {
 
     pub fn recycle_data_pages(&mut self) {
         self.areas.clear();
+    }
+
+    fn map_trampoline(&mut self) {
+        self.page_table.map(
+            VirtAddr::from(TRAMPOLINE).into(),
+            PhysAddr::from(strampoline as usize).into(),
+            PTEFlags::R | PTEFlags::X
+        )
+    }
+
+    pub fn new_kernel() -> Self {
+        let mut memory_set = Self::new();
+
+        info!("kernel map trampoline");
+        memory_set.map_trampoline();
+
+        info!("kernel map .text [0x{:#x}, 0x{:#x}]", stext as usize, etext as usize);
+        memory_set.push(
+            MapArea::new(
+                (stext as usize).into(),
+                (etext as usize).into(),
+                MapType::Indentical,
+                MapPermission::R | MapPermission::X
+            ),
+            None
+        );
+
+        info!("kernel map .rodata [0x{:#x}, 0x{:#x}]", srodata as usize, erodata as usize);
+        memory_set.push(
+            MapArea::new(
+                (srodata as usize).into(),
+                (erodata as usize).into(),
+                MapType::Indentical,
+                MapPermission::R
+            ),
+            None
+        );
+        
+        info!("kernel map .data [0x{:#x}, 0x{:#x}]", sdata as usize, edata as usize);
+        memory_set.push(
+            MapArea::new(
+                (sdata as usize).into(),
+                (edata as usize).into(),
+                MapType::Indentical,
+                MapPermission::R | MapPermission::W
+            ),
+            None
+        );
+
+        info!("kernel map .bss [0x{:#x}, 0x{:#x}]", sbss_with_stack as usize, ebss as usize);
+        memory_set.push(
+            MapArea::new(
+                (sbss_with_stack as usize).into(),
+                (ebss as usize).into(),
+                MapType::Indentical,
+                MapPermission::R | MapPermission::W
+            ),
+            None
+        );
+
+        info!("kernel map physics memory [0x{:#x}, 0x{:#x}]", ekernel as usize, MEMORY_END);
+        memory_set.push(
+            MapArea::new(
+                (ekernel as usize).into(),
+                MEMORY_END.into(),
+                MapType::Indentical,
+                MapPermission::R | MapPermission::W
+            ),
+            None
+        );
+
+        memory_set
     }
 }

@@ -11,3 +11,6 @@ pub const VPN_WIDTH: usize = VA_WIDTH - PAGE_SIZE_BITS;
 pub const PPN_WIDTH: usize = PA_WIDTH - PAGE_SIZE_BITS;
 
 pub const MEMORY_END: usize = 0x88000000;
+
+pub const TRAMPOLINE: usize = usize::MAX - PAGE_SIZE + 1;
+pub const TRAP_CONTEXT_BASE: usize = TRAMPOLINE - PAGE_SIZE;
