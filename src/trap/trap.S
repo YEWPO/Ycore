@@ -34,3 +34,25 @@ __alltraps:
   csrw satp, t0
   sfence.vma
   jr t1
+
+.globl __restore
+__restore:
+  csrw satp, a1
+  sfence.vma
+  csrw sscratch, a0
+  mv sp, a0
+
+  ld t0, 32 * 8(sp)
+  ld t1, 33 * 8(sp)
+  csrw sstatus, t0
+  csrw sepc, t1
+
+  LOAD_GRP 1
+  LOAD_GRP 3
+  .set n, 5
+  .rept
+    LOAD_GRP %n
+    .set n, n + 1
+  .endr
+  ld sp, 2 * 8(sp)
+  sret
