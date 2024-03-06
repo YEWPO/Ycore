@@ -50,7 +50,7 @@ __restore:
   LOAD_GRP 1
   LOAD_GRP 3
   .set n, 5
-  .rept
+  .rept 27
     LOAD_GRP %n
     .set n, n + 1
   .endr
@@ -65,7 +65,7 @@ __alltraps_k:
   SAVE_GRP 1
   SAVE_GRP 3
   .set n, 5
-  .rept
+  .rept 27
     SAVE_GRP %n
     .set n, n + 1
   .endr
@@ -90,7 +90,7 @@ __restore_k:
   LOAD_GRP 1
   LOAD_GRP 3
   .set n, 5
-  .rept
+  .rept 27
     LOAD_GRP %n
     .set n, n + 1
   .endr
