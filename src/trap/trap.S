@@ -79,3 +79,22 @@ __alltraps_k:
 
   mv a0, sp
   jalr t0
+
+.globl __restore_k
+__restore_k:
+  ld t0, 32 * 8(sp)
+  ld t1, 33 * 8(sp)
+  csrw sstatus, t0
+  csrw sepc, t1
+
+  LOAD_GRP 1
+  LOAD_GRP 3
+  .set n, 5
+  .rept
+    LOAD_GRP %n
+    .set n, n + 1
+  .endr
+
+  addi sp, sp, 34 * 8
+
+  sret
