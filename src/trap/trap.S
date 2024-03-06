@@ -56,3 +56,26 @@ __restore:
   .endr
   ld sp, 2 * 8(sp)
   sret
+
+.align 3
+.globl __alltraps_k
+__alltraps_k:
+  addi sp, sp, -34 * 8
+
+  SAVE_GRP 1
+  SAVE_GRP 3
+  .set n, 5
+  .rept
+    SAVE_GRP %n
+    .set n, n + 1
+  .endr
+
+  csrr t0, sstatus
+  csrr t1, sepc
+  sd t0, 32 * 8(sp)
+  sd t1, 33 * 8(sp)
+
+  csrr t0, sscratch
+
+  mv a0, sp
+  jalr t0
