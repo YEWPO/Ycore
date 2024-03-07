@@ -149,7 +149,7 @@ impl PageTable {
         assert!(!pte.is_valid(), "vpn {:?} is mapped before mapping", vpn);
 
         trace!("vpn {:?} is mapped to ppn {:?}", vpn, ppn);
-        *pte = PageTableEntry::new(ppn, flags);
+        *pte = PageTableEntry::new(ppn, flags | PTEFlags::V);
     }
 
     pub fn unmap(&mut self, vpn: VirtPageNum) {
