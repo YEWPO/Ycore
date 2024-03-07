@@ -13,6 +13,7 @@ mod sbi;
 mod logger;
 mod mm;
 mod sync;
+mod trap;
 
 global_asm!(include_str!("entry.S"));
 
@@ -35,6 +36,7 @@ fn kernel_main() {
     logger::init();
 
     mm::init();
+    trap::init();
 
     panic!();
 }

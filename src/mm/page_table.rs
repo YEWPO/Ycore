@@ -97,8 +97,6 @@ impl PageTable {
             let pte = &mut ppn.get_pte_array()[*idx];
             
             if i == 2 {
-                debug!("vpn {:?}'s pte is {:?}", vpn , &pte);
-
                 result = Some(pte);
                 break;
             }
@@ -149,7 +147,7 @@ impl PageTable {
         assert!(!pte.is_valid(), "vpn {:?} is mapped before mapping", vpn);
 
         trace!("vpn {:?} is mapped to ppn {:?}", vpn, ppn);
-        *pte = PageTableEntry::new(ppn, flags);
+        *pte = PageTableEntry::new(ppn, flags | PTEFlags::V);
     }
 
     pub fn unmap(&mut self, vpn: VirtPageNum) {
