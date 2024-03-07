@@ -36,6 +36,7 @@ fn kernel_main() {
     logger::init();
 
     mm::init();
+    trap::init();
 
     panic!();
 }

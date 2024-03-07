@@ -1,6 +1,6 @@
 use core::arch::asm;
 
-use log::info;
+use log::debug;
 use riscv::register::{scause::{self, Exception, Interrupt, Trap}, sscratch, sstatus, stval, stvec::{self, TrapMode}};
 
 use crate::config::TRAMPOLINE;
@@ -15,6 +15,7 @@ extern "C" {
 pub fn set_kernel_trap_entry() {
     let __alltraps_k_va = __alltraps_k as usize - __alltraps as usize + TRAMPOLINE;
 
+    debug!("set kernel trap entry!");
     unsafe {
         stvec::write(__alltraps_k_va, TrapMode::Direct);
         sscratch::write(trap_from_kernel as usize);
@@ -22,6 +23,7 @@ pub fn set_kernel_trap_entry() {
 }
 
 fn set_user_trap_entry() {
+    debug!("set user trap entry!");
     unsafe { stvec::write(TRAMPOLINE, TrapMode::Direct) };
 }
 
@@ -46,7 +48,7 @@ pub fn trap_handler() -> ! {
             enable_supervisor_interrupt();
         }
         Trap::Interrupt(Interrupt::SupervisorTimer) => {
-            info!("timer interrupt!");
+            debug!("timer interrupt!");
         }
         _ => {
             panic!("Unsupported trap {:?} from user, stval = {:#x}!", scause.cause(), stval);
@@ -80,7 +82,7 @@ pub fn trap_from_kernel() {
 
     match scause.cause() {
         Trap::Interrupt(Interrupt::SupervisorTimer) => {
-            info!("timer interrupt!");
+            debug!("timer interrupt!");
         }
         _ => {
             panic!("Unsupported trap {:?} from kernel, stval = {:#x}", scause.cause(), stval);

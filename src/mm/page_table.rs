@@ -97,8 +97,6 @@ impl PageTable {
             let pte = &mut ppn.get_pte_array()[*idx];
             
             if i == 2 {
-                debug!("vpn {:?}'s pte is {:?}", vpn , &pte);
-
                 result = Some(pte);
                 break;
             }
