@@ -14,6 +14,7 @@ mod logger;
 mod mm;
 mod sync;
 mod trap;
+mod drivers;
 
 global_asm!(include_str!("entry.S"));
 
@@ -38,5 +39,5 @@ fn kernel_main() {
     mm::init();
     trap::init();
 
-    panic!();
+    loop {};
 }

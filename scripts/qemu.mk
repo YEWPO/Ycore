@@ -1,7 +1,7 @@
 QEMU = qemu-system-$(ARCH)
 
 MACHINE = -machine virt
-BIOS = -bios $(UTILS_DIR)/rustsbi-qemu.bin
+BIOS = -bios default
 MOMERY = -m 128M
 GRAPHIC = -nographic
 

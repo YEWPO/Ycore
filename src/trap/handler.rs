@@ -1,9 +1,9 @@
 use core::arch::asm;
 
-use log::debug;
-use riscv::register::{scause::{self, Exception, Interrupt, Trap}, sscratch, sstatus, stval, stvec::{self, TrapMode}};
+use log::{debug, trace};
+use riscv::register::{scause::{self, Exception, Interrupt, Trap}, sie, sscratch, sstatus, stval, stvec::{self, TrapMode}};
 
-use crate::config::TRAMPOLINE;
+use crate::{config::TRAMPOLINE, drivers::set_next_trigger};
 
 extern "C" {
     fn __alltraps();
@@ -27,11 +27,18 @@ fn set_user_trap_entry() {
     unsafe { stvec::write(TRAMPOLINE, TrapMode::Direct) };
 }
 
+pub fn enable_timer_interrupt() {
+    trace!("enable timer interrupt.");
+    unsafe { sie::set_stimer() };
+}
+
 fn enable_supervisor_interrupt() {
+    trace!("enable supervisor interrupt.");
     unsafe { sstatus::set_sie() };
 }
 
 fn disable_supervisor_interrupt() {
+    trace!("disable supervisor interrupt.");
     unsafe { sstatus::clear_sie() };
 }
 
@@ -49,6 +56,7 @@ pub fn trap_handler() -> ! {
         }
         Trap::Interrupt(Interrupt::SupervisorTimer) => {
             debug!("timer interrupt!");
+            set_next_trigger();
         }
         _ => {
             panic!("Unsupported trap {:?} from user, stval = {:#x}!", scause.cause(), stval);
@@ -83,6 +91,7 @@ pub fn trap_from_kernel() {
     match scause.cause() {
         Trap::Interrupt(Interrupt::SupervisorTimer) => {
             debug!("timer interrupt!");
+            set_next_trigger();
         }
         _ => {
             panic!("Unsupported trap {:?} from kernel, stval = {:#x}", scause.cause(), stval);
