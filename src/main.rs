@@ -15,6 +15,7 @@ mod mm;
 mod sync;
 mod trap;
 mod drivers;
+mod syscall;
 
 global_asm!(include_str!("entry.S"));
 
